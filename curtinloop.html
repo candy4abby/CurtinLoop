@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CurtinLoop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#141B2E;
+  --ink-soft:#4A5468;
+  --paper:#F2F3F7;
+  --card:#FFFFFF;
+  --line:#E3E6EE;
+  --cobalt:#2653E9;
+  --cobalt-deep:#12205C;
+  --slide-top:#0E1A4C;
+  --slide-bot:#1B2F86;
+  --gold:#EFA400;
+  --gold-soft:#FFF4DC;
+  --green:#0E9F6E;
+  --green-soft:#E2F6EE;
+  --red:#D64528;
+  --red-soft:#FBE9E4;
+  --radius:14px;
+  --disp:'Space Grotesk',sans-serif;
+  --body:'Instrument Sans',system-ui,sans-serif;
+  --mono:'Space Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{background:#DCDFE8}
+body{font-family:var(--body);color:var(--ink);background:#DCDFE8;display:flex;justify-content:center}
+.phone{width:100%;max-width:412px;min-height:100vh;background:var(--paper);position:relative;box-shadow:0 0 40px rgba(20,27,46,.12)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px;border-radius:6px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:30;background:var(--paper);padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.topbar-row{display:flex;align-items:center;justify-content:space-between}
+.wordmark{font-family:var(--disp);font-weight:700;font-size:21px;letter-spacing:-.02em;display:flex;align-items:center;gap:7px}
+.wordmark .loop{color:var(--cobalt)}
+.loopmark{width:22px;height:22px}
+.top-actions{display:flex;gap:6px}
+.icon-btn{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:var(--ink-soft)}
+.icon-btn:hover{background:var(--line)}
+.pill-row{display:flex;gap:8px;margin-top:10px}
+.pill{font-family:var(--mono);font-size:12px;padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--card);color:var(--ink-soft)}
+.pill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ---------- screens ---------- */
+.screen{display:none;padding:16px 16px 96px}
+.screen.on{display:block}
+.screen-h{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.screen-h .glyph{width:38px;height:38px;border-radius:11px;background:var(--cobalt-deep);color:var(--gold);display:grid;place-items:center;font-family:var(--mono);font-size:15px;font-weight:700}
+.screen-h h1{font-family:var(--disp);font-size:22px;letter-spacing:-.02em}
+.screen-h p{font-size:13px;color:var(--ink-soft)}
+.section-label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--ink-soft);text-transform:uppercase;margin:20px 0 8px}
+
+/* ---------- feed ---------- */
+.ai-banner{background:var(--cobalt-deep);border-radius:var(--radius);padding:14px 16px;color:#fff;margin-bottom:14px;position:relative;overflow:hidden}
+.ai-banner::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 39px,rgba(255,255,255,.05) 39px 40px)}
+.ai-banner .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.ai-banner b{display:block;font-family:var(--disp);font-size:15px;margin:3px 0 2px}
+.ai-banner span{font-size:12px;color:#B9C4EA}
+
+.vcard{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);margin-bottom:18px;overflow:hidden}
+.slide{position:relative;aspect-ratio:4/5;background:linear-gradient(160deg,var(--slide-top),var(--slide-bot));color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:18px;cursor:pointer}
+.slide::before{content:"";position:absolute;inset:0;background:
+  repeating-linear-gradient(0deg,transparent 0 35px,rgba(255,255,255,.055) 35px 36px),
+  repeating-linear-gradient(90deg,transparent 0 35px,rgba(255,255,255,.055) 35px 36px)}
+.slide .unit-tab{position:absolute;top:0;left:18px;background:var(--gold);color:var(--ink);font-family:var(--mono);font-size:11px;font-weight:700;padding:6px 10px 5px;border-radius:0 0 8px 8px}
+.slide .dur{position:absolute;top:14px;right:14px;font-family:var(--mono);font-size:11px;background:rgba(9,14,36,.65);padding:4px 8px;border-radius:7px}
+.slide .verified{position:absolute;top:44px;right:14px;display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;letter-spacing:.05em;background:var(--green);padding:4px 9px;border-radius:7px;font-weight:700}
+.slide .topic{font-family:var(--disp);font-weight:700;font-size:27px;line-height:1.08;letter-spacing:-.02em;position:relative;max-width:88%}
+.slide .subline{font-family:var(--mono);font-size:11px;color:#9FB0E8;margin-top:8px;position:relative}
+.play-hint{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.14);backdrop-filter:blur(2px);display:grid;place-items:center;border:1.5px solid rgba(255,255,255,.4)}
+.play-hint svg{margin-left:3px}
+.watchbar{position:absolute;left:0;bottom:0;height:4px;background:var(--gold);width:0%;transition:width .1s linear}
+
+.vmeta{padding:12px 14px 6px;display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:11px;background:var(--cobalt-deep);color:var(--gold);font-family:var(--mono);font-weight:700;font-size:13px;display:grid;place-items:center;flex-shrink:0}
+.vmeta .who{flex:1;min-width:0}
+.vmeta .who b{display:block;font-size:14px;font-weight:600}
+.vmeta .who span{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.impact-chip{font-family:var(--mono);font-size:12px;font-weight:700;background:var(--gold-soft);color:#8A5E00;border:1px solid #F2DCA8;padding:5px 9px;border-radius:8px;white-space:nowrap}
+.follow-btn{font-size:12px;font-weight:600;color:var(--cobalt);border:1.5px solid var(--cobalt);border-radius:8px;padding:5px 11px}
+.follow-btn.done{background:var(--cobalt);color:#fff}
+.react-row{display:flex;gap:6px;padding:10px 14px 14px;flex-wrap:wrap;align-items:center}
+.react{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:6px 10px}
+.react.hit{border-color:var(--cobalt);color:var(--cobalt);background:#EEF2FF}
+.react.hit.warn{border-color:var(--red);color:var(--red);background:var(--red-soft)}
+.react-spacer{flex:1}
+.mini-act{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink-soft)}
+.mini-act.hit{color:var(--gold);background:var(--gold-soft)}
+
+/* ---------- quiz overlay ---------- */
+.overlay{position:fixed;inset:0;background:rgba(14,20,44,.6);display:none;align-items:flex-end;justify-content:center;z-index:60}
+.overlay.on{display:flex}
+.sheet{width:100%;max-width:412px;background:var(--card);border-radius:20px 20px 0 0;padding:20px 18px 26px;animation:up .25s ease}
+@keyframes up{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.sheet .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--cobalt)}
+.sheet h2{font-family:var(--disp);font-size:19px;margin:6px 0 14px;letter-spacing:-.01em}
+.opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;font-size:14px;margin-bottom:8px;background:var(--card)}
+.opt:hover{border-color:var(--cobalt)}
+.opt.right{border-color:var(--green);background:var(--green-soft);font-weight:600}
+.opt.wrong{border-color:var(--red);background:var(--red-soft)}
+.quiz-result{display:none;margin-top:12px;border-radius:11px;padding:12px 14px;font-size:13px}
+.quiz-result.good{display:block;background:var(--green-soft);color:#0A6B4A}
+.quiz-result.bad{display:block;background:var(--red-soft);color:#96331D}
+.quiz-result b{font-family:var(--mono)}
+.sheet .close{margin-top:14px;width:100%;background:var(--ink);color:#fff;font-weight:600;font-size:14px;padding:12px;border-radius:11px}
+
+/* ---------- upload ---------- */
+.form-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:14px}
+.f-label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);display:block;margin:14px 0 6px}
+.f-label:first-child{margin-top:0}
+.f-in{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-size:14px;font-family:var(--body);background:var(--paper);color:var(--ink)}
+.f-in::placeholder{color:#9AA3B5}
+select.f-in{appearance:none}
+.dropzone{border:1.5px dashed #B9C0D2;border-radius:12px;padding:26px 12px;text-align:center;color:var(--ink-soft);margin-top:6px;cursor:pointer;background:var(--paper)}
+.dropzone.filled{border-style:solid;border-color:var(--green);background:var(--green-soft);color:#0A6B4A}
+.dropzone b{display:block;font-size:13px;font-weight:600;margin-top:6px;color:var(--ink)}
+.dropzone span{font-family:var(--mono);font-size:11px}
+.big-btn{width:100%;margin-top:18px;background:var(--cobalt);color:#fff;font-weight:600;font-size:15px;padding:14px;border-radius:12px}
+.big-btn:disabled{background:#B7C3F4;cursor:default}
+.review-card{display:none;background:var(--cobalt-deep);color:#fff;border-radius:var(--radius);padding:16px;margin-top:14px}
+.review-card.on{display:block}
+.review-card .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.check-line{display:flex;align-items:center;gap:9px;font-size:13px;padding:7px 0;opacity:0;transform:translateX(-6px);transition:.3s}
+.check-line.show{opacity:1;transform:none}
+.check-line .box{width:20px;height:20px;border-radius:6px;background:var(--green);display:grid;place-items:center;flex-shrink:0;font-size:12px}
+.review-note{margin-top:10px;background:rgba(255,255,255,.09);border-left:3px solid var(--gold);border-radius:8px;padding:10px 12px;font-size:13px;color:#D6DDF6;display:none}
+.review-note.show{display:block}
+.review-note b{color:var(--gold);font-family:var(--mono);font-size:11px;display:block;margin-bottom:3px;letter-spacing:.06em}
+.publish-btn{display:none;width:100%;margin-top:14px;background:var(--gold);color:var(--ink);font-weight:700;font-size:14px;padding:12px;border-radius:11px}
+.publish-btn.show{display:block}
+
+/* ---------- leaderboard ---------- */
+.lb-row{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:8px}
+.lb-row.top1{border-color:var(--gold);background:linear-gradient(0deg,var(--gold-soft),var(--card))}
+.lb-rank{font-family:var(--mono);font-weight:700;font-size:14px;width:26px;text-align:center;color:var(--ink-soft)}
+.lb-row .who{flex:1;min-width:0}
+.lb-row .who b{display:block;font-size:14px;font-weight:600}
+.lb-row .who span{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.lb-score{text-align:right}
+.lb-score b{font-family:var(--mono);font-size:16px;color:var(--cobalt)}
+.lb-row.top1 .lb-score b{color:#8A5E00}
+.lb-score span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft)}
+.lb-badges{font-size:13px;letter-spacing:1px}
+
+/* ---------- profile ---------- */
+.prof-head{background:var(--cobalt-deep);border-radius:var(--radius);padding:18px 16px;color:#fff;display:flex;gap:14px;align-items:center;position:relative;overflow:hidden}
+.prof-head::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 27px,rgba(255,255,255,.05) 27px 28px)}
+.prof-av{width:58px;height:58px;border-radius:16px;background:var(--gold);color:var(--ink);font-family:var(--disp);font-weight:700;font-size:24px;display:grid;place-items:center;flex-shrink:0;position:relative}
+.prof-head .who{position:relative}
+.prof-head b{font-family:var(--disp);font-size:19px;display:block;letter-spacing:-.01em}
+.prof-head span{font-family:var(--mono);font-size:11px;color:#AEBBEB;display:block;margin-top:3px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.stat b{font-family:var(--mono);font-size:22px;display:block;letter-spacing:-.02em}
+.stat.gold b{color:#B07800}
+.stat span{font-size:12px;color:var(--ink-soft)}
+.xp-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-top:8px}
+.xp-card .row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+.xp-card .row b{font-family:var(--mono)}
+.xp-track{height:8px;border-radius:99px;background:var(--paper);overflow:hidden}
+.xp-fill{height:100%;width:70%;border-radius:99px;background:linear-gradient(90deg,var(--cobalt),var(--gold))}
+.badge-row{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:7px}
+.badge-row.locked{opacity:.45}
+.badge-ico{font-size:20px}
+.badge-row .t{flex:1}
+.badge-row .t b{display:block;font-size:13px;font-weight:600}
+.badge-row .t span{font-size:12px;color:var(--ink-soft)}
+.earned-tag{font-family:var(--mono);font-size:10px;font-weight:700;background:var(--gold-soft);color:#8A5E00;padding:4px 8px;border-radius:7px;letter-spacing:.05em}
+.unit-chip{display:block;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--cobalt);border-radius:10px;padding:11px 13px;font-size:13px;margin-bottom:7px}
+.unit-chip b{font-family:var(--mono);font-size:12px;color:var(--cobalt);margin-right:8px}
+
+/* ---------- analytics ---------- */
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-top:8px}
+.chart-card h3{font-family:var(--disp);font-size:15px;margin-bottom:8px}
+.axis-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-soft);margin-top:4px}
+.map-group{margin-bottom:10px}
+.map-group .g-label{font-family:var(--mono);font-size:11px;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:3px;display:inline-block}
+.topic-chip{display:inline-block;font-size:12px;font-weight:600;padding:6px 11px;border-radius:9px;margin:0 6px 6px 0}
+.topic-chip.good{background:var(--green-soft);color:#0A6B4A;border:1px solid #BEE8D6}
+.topic-chip.weak{background:var(--gold-soft);color:#8A5E00;border:1px solid #F2DCA8}
+.next-steps{background:var(--cobalt-deep);border-radius:var(--radius);padding:14px 16px;color:#fff;margin-top:10px}
+.next-steps .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--gold);text-transform:uppercase}
+.step{background:rgba(255,255,255,.08);border-radius:10px;padding:11px 13px;margin-top:9px;width:100%;text-align:left;color:#fff}
+.step b{display:block;font-size:13px;font-weight:600}
+.step span{font-size:12px;color:#B9C4EA}
+
+/* ---------- bottom nav ---------- */
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:412px;background:var(--card);border-top:1px solid var(--line);display:flex;z-index:40;padding:6px 4px calc(8px + env(safe-area-inset-bottom))}
+.nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:var(--mono);font-size:9.5px;letter-spacing:.04em;color:var(--ink-soft);padding:6px 0;text-transform:uppercase}
+.nav button.on{color:var(--cobalt)}
+.nav button.on .nav-ico{background:#EEF2FF}
+.nav-ico{width:34px;height:24px;border-radius:8px;display:grid;place-items:center}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;top:16px;left:50%;transform:translate(-50%,-80px);background:var(--ink);color:#fff;font-size:13px;font-weight:500;padding:11px 18px;border-radius:11px;z-index:80;transition:transform .3s ease;max-width:340px;text-align:center}
+.toast.on{transform:translate(-50%,0)}
+.toast b{color:var(--gold);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- top bar -->
+  <header class="topbar">
+    <div class="topbar-row">
+      <div class="wordmark">
+        <svg class="loopmark" viewBox="0 0 24 24" fill="none"><path d="M12 3a9 9 0 1 0 9 9" stroke="#2653E9" stroke-width="3" stroke-linecap="round"/><path d="M21 12l-3-3.5M21 12l3.2-3" stroke="#EFA400" stroke-width="2.6" stroke-linecap="round"/></svg>
+        Curtin<span class="loop">Loop</span>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" aria-label="Search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+        <button class="icon-btn" aria-label="Notifications"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg></button>
+      </div>
+    </div>
+    <div class="pill-row" id="feedPills">
+      <button class="pill on" onclick="feedMode(this,'for-you')">FOR YOU</button>
+      <button class="pill" onclick="feedMode(this,'my-units')">MY UNITS</button>
+    </div>
+  </header>
+
+  <!-- ============ FEED ============ -->
+  <main class="screen on" id="screen-feed">
+    <div class="ai-banner">
+      <div class="tag">AI recommended</div>
+      <b>Picked for your learning path</b>
+      <span>Computer Science, weighted 40% subject relevance</span>
+    </div>
+    <div id="feedList"></div>
+  </main>
+
+  <!-- ============ ANALYTICS ============ -->
+  <main class="screen" id="screen-analytics">
+    <div class="screen-h">
+      <div class="glyph">//</div>
+      <div><h1>Learning analytics</h1><p>Where your study time actually went</p></div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><b id="statAcc">86%</b><span>Quiz accuracy</span></div>
+      <div class="stat"><b id="statQuiz">7</b><span>Quizzes taken</span></div>
+      <div class="stat gold"><b>12d</b><span>Learning streak</span></div>
+      <div class="stat"><b id="statXP2">490</b><span>Total XP</span></div>
+    </div>
+    <div class="chart-card">
+      <h3>Weekly progress</h3>
+      <svg viewBox="0 0 340 110" width="100%" aria-label="Line chart of minutes studied per day, peaking midweek">
+        <defs><linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2653E9" stop-opacity=".22"/><stop offset="1" stop-color="#2653E9" stop-opacity="0"/>
+        </linearGradient></defs>
+        <g stroke="#E3E6EE"><line x1="0" y1="30" x2="340" y2="30"/><line x1="0" y1="60" x2="340" y2="60"/><line x1="0" y1="90" x2="340" y2="90"/></g>
+        <path d="M10 88 L60 66 L110 34 L160 30 L210 36 L260 44 L320 84 L320 105 L10 105 Z" fill="url(#fade)"/>
+        <path d="M10 88 L60 66 L110 34 L160 30 L210 36 L260 44 L320 84" fill="none" stroke="#2653E9" stroke-width="2.5" stroke-linejoin="round"/>
+        <circle cx="160" cy="30" r="4" fill="#EFA400" stroke="#fff" stroke-width="2"/>
+      </svg>
+      <div class="axis-labels"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span></div>
+    </div>
+    <div class="chart-card">
+      <h3>Knowledge map</h3>
+      <div class="map-group">
+        <div class="g-label"><span class="dot" style="background:var(--green)"></span>Mastered</div>
+        <span class="topic-chip good">Recursion</span><span class="topic-chip good">Loops</span><span class="topic-chip good">Big O basics</span>
+      </div>
+      <div class="map-group">
+        <div class="g-label"><span class="dot" style="background:var(--gold)"></span>Needs work</div>
+        <span class="topic-chip weak">Pointers</span><span class="topic-chip weak">Linked lists</span>
+      </div>
+    </div>
+    <div class="next-steps">
+      <div class="tag">AI suggested next steps</div>
+      <button class="step" onclick="goTab('feed');toast('Feed filtered to <b>Pointers</b> videos')">
+        <b>Patch your weak spots</b><span>3 short videos on pointers, all under 90 seconds</span>
+      </button>
+      <button class="step" onclick="goTab('upload');toast('Topic prefilled: <b>Recursion</b>')">
+        <b>Teach recursion back</b><span>You mastered it. Explaining it locks it in</span>
+      </button>
+    </div>
+  </main>
+
+  <!-- ============ UPLOAD ============ -->
+  <main class="screen" id="screen-upload">
+    <div class="screen-h">
+      <div class="glyph">+</div>
+      <div><h1>Upload a video</h1><p>30 to 90 seconds, one idea, explained well</p></div>
+    </div>
+    <div class="form-card">
+      <label class="f-label" for="upTitle">Video title</label>
+      <input class="f-in" id="upTitle" placeholder="e.g. Why recursion needs a base case">
+      <label class="f-label" for="upCourse">Course</label>
+      <select class="f-in" id="upCourse">
+        <option>Computer Science</option><option>Software Engineering</option><option>Cyber Security</option><option>Data Science</option>
+      </select>
+      <label class="f-label" for="upUnit">Unit code</label>
+      <input class="f-in" id="upUnit" placeholder="e.g. COMP1005">
+      <label class="f-label" for="upTopic">Topic</label>
+      <input class="f-in" id="upTopic" placeholder="e.g. Recursion, base cases">
+      <label class="f-label">Video file</label>
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Choose a video file" onclick="fakeFile()" onkeydown="if(event.key==='Enter')fakeFile()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <b id="dzText">Tap to choose a video</b>
+        <span>MP4 or MOV, 30 to 90 sec</span>
+      </div>
+      <button class="big-btn" id="submitReview" onclick="runReview()">Submit for AI review</button>
+    </div>
+    <div class="review-card" id="reviewCard">
+      <div class="tag">AI review</div>
+      <div style="margin-top:8px">
+        <div class="check-line"><span class="box">✓</span>Accuracy, facts check out against unit material</div>
+        <div class="check-line"><span class="box">✓</span>Clarity, one concept at a steady pace</div>
+        <div class="check-line"><span class="box">✓</span>Completeness, covers the core idea end to end</div>
+        <div class="check-line"><span class="box">✓</span>Appropriate content</div>
+        <div class="check-line"><span class="box">✓</span>Originality, not a repost</div>
+      </div>
+      <div class="review-note" id="reviewNote">
+        <b>One suggestion</b>
+        Consider explaining why pointers store memory addresses, not just that they do. Viewers who get the why answer follow-up quizzes better.
+      </div>
+      <button class="publish-btn" id="publishBtn" onclick="publishVideo()">Approved. Publish it</button>
+    </div>
+  </main>
+
+  <!-- ============ LEADERBOARD ============ -->
+  <main class="screen" id="screen-leaders">
+    <div class="screen-h">
+      <div class="glyph">#1</div>
+      <div><h1>Leaderboard</h1><p>Ranked by how much people actually learn from you</p></div>
+    </div>
+    <div class="pill-row" style="margin:12px 0 14px">
+      <button class="pill on" onclick="lbMode(this,'impact')">TEACHING IMPACT</button>
+      <button class="pill" onclick="lbMode(this,'helped')">STUDENTS HELPED</button>
+    </div>
+    <div id="lbList"></div>
+  </main>
+
+  <!-- ============ PROFILE ============ -->
+  <main class="screen" id="screen-profile">
+    <div class="prof-head">
+      <div class="prof-av">A</div>
+      <div class="who">
+        <b>Abby Tran</b>
+        <span>COMPUTER SCIENCE · YEAR 3</span>
+        <span>CURTIN UNIVERSITY</span>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat gold"><b>8.5</b><span>Impact score</span></div>
+      <div class="stat"><b>156</b><span>Students helped</span></div>
+      <div class="stat"><b id="statVids">5</b><span>Videos</span></div>
+      <div class="stat"><b>12d</b><span>Streak</span></div>
+    </div>
+    <div class="xp-card">
+      <div class="row"><span>Level 5</span><b id="statXP">490 XP</b></div>
+      <div class="xp-track"><div class="xp-fill" id="xpFill"></div></div>
+    </div>
+    <div class="section-label">Badges</div>
+    <div class="badge-row"><span class="badge-ico">🏅</span><div class="t"><b>First Teacher</b><span>Uploaded your first video</span></div><span class="earned-tag">EARNED</span></div>
+    <div class="badge-row"><span class="badge-ico">🌟</span><div class="t"><b>AI Verified Educator</b><span>Every video passed AI review</span></div><span class="earned-tag">EARNED</span></div>
+    <div class="badge-row locked"><span class="badge-ico">🎓</span><div class="t"><b>Top Tutor</b><span>Reach a 9.0 impact score</span></div></div>
+    <div class="badge-row"><span class="badge-ico">🔥</span><div class="t"><b>100 Students Helped</b><span>156 and counting</span></div><span class="earned-tag">EARNED</span></div>
+    <div class="badge-row locked"><span class="badge-ico">📚</span><div class="t"><b>Unit Expert</b><span>5 videos in one unit</span></div></div>
+    <div class="section-label">Enrolled units</div>
+    <a class="unit-chip" href="#" onclick="goTab('feed');toast('Feed filtered to <b>COMP1005</b>');return false"><b>COMP1005</b>Programming Fundamentals</a>
+    <a class="unit-chip" href="#" onclick="goTab('feed');toast('Feed filtered to <b>COMP2003</b>');return false"><b>COMP2003</b>Data Structures</a>
+  </main>
+
+  <!-- quiz overlay -->
+  <div class="overlay" id="quizOverlay" role="dialog" aria-modal="true" aria-label="Understanding check">
+    <div class="sheet">
+      <div class="tag">AI understanding check</div>
+      <h2 id="quizQ"></h2>
+      <div id="quizOpts"></div>
+      <div class="quiz-result" id="quizResult"></div>
+      <button class="close" id="quizClose" onclick="closeQuiz()">Back to feed</button>
+    </div>
+  </div>
+
+  <!-- bottom nav -->
+  <nav class="nav" aria-label="Main">
+    <button class="on" data-tab="feed" onclick="goTab('feed')"><span class="nav-ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>Feed</button>
+    <button data-tab="analytics" onclick="goTab('analytics')"><span class="nav-ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>Analytics</button>
+    <button data-tab="upload" onclick="goTab('upload')"><span class="nav-ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 8v8M8 12h8"/></svg></span>Upload</button>
+    <button data-tab="leaders" onclick="goTab('leaders')"><span class="nav-ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/></svg></span>Leaders</button>
+    <button data-tab="profile" onclick="goTab('profile')"><span class="nav-ico"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg></span>Profile</button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const videos=[
+  {id:1,creator:"Sarah Kim",unit:"COMP1005",topic:"Why recursion needs a base case",sub:"Recursion · Base cases",dur:"0:58",impact:8.9,views:214,
+   quiz:{q:"What is the purpose of a base case in recursion?",opts:["It makes the function run faster","It stops the function calling itself forever","It stores the return value in memory","It converts recursion into a loop"],right:1,related:"Stack frames in 60 seconds"}},
+  {id:2,creator:"Liam Torres",unit:"COMP2003",topic:"Stacks vs queues, the cafe line trick",sub:"Data structures · ADTs",dur:"1:12",impact:9.5,views:389,
+   quiz:{q:"A printer processes jobs in the order they arrive. Which structure is that?",opts:["Stack, last in first out","Queue, first in first out","Hash map","Binary tree"],right:1,related:"When to actually use a stack"}},
+  {id:3,creator:"Maya Patel",unit:"COMP1005",topic:"Pointers are just street addresses",sub:"Memory · Pointers",dur:"1:25",impact:9.2,views:301,
+   quiz:{q:"What does a pointer variable actually store?",opts:["A copy of the value","The memory address of a value","The name of another variable","The size of the data type"],right:1,related:"Dereferencing without crying"}}
+];
+const leaders=[
+  {name:"Liam Torres",course:"Computer Science",impact:9.5,helped:389,badges:"🎓🌟🔥"},
+  {name:"Maya Patel",course:"Computer Science",impact:9.2,helped:301,badges:"🎓🌟"},
+  {name:"Sarah Kim",course:"Computer Science",impact:8.9,helped:214,badges:"🌟🔥"},
+  {name:"Abby Tran",course:"Computer Science",impact:8.5,helped:156,badges:"🏅🌟"},
+  {name:"James Lee",course:"Computer Science",impact:7.8,helped:98,badges:"🏅"},
+  {name:"Bailey Haffner",course:"Engineering",impact:6.4,helped:41,badges:""},
+  {name:"Mishitha Rao",course:"Computer Science",impact:5.9,helped:27,badges:""}
+];
+let xp=490,quizzes=7,correct=6,vidCount=5,activeQuiz=null;
+
+/* ---------------- feed ---------------- */
+function initials(n){return n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+function renderFeed(filterMine){
+  const list=document.getElementById("feedList");
+  list.innerHTML=videos.filter(v=>!filterMine||["COMP1005","COMP2003"].includes(v.unit)).map(v=>`
+  <article class="vcard" id="vcard-${v.id}">
+    <div class="slide" role="button" tabindex="0" aria-label="Play ${v.topic}" onclick="playVideo(${v.id})" onkeydown="if(event.key==='Enter')playVideo(${v.id})">
+      <span class="unit-tab">${v.unit}</span>
+      <span class="dur">▶ ${v.dur}</span>
+      <span class="verified">✓ AI VERIFIED</span>
+      <div class="play-hint" id="ph-${v.id}"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M7 4l13 8-13 8V4z"/></svg></div>
+      <div class="topic">${v.topic}</div>
+      <div class="subline">${v.sub} · ${v.views} views</div>
+      <div class="watchbar" id="wb-${v.id}"></div>
+    </div>
+    <div class="vmeta">
+      <span class="avatar">${initials(v.creator)}</span>
+      <div class="who"><b>${v.creator}</b><span>${v.unit}</span></div>
+      <span class="impact-chip">★ ${v.impact.toFixed(1)}</span>
+      <button class="follow-btn" onclick="toggleFollow(this,'${v.creator}')">Follow</button>
+    </div>
+    <div class="react-row">
+      <button class="react" onclick="react(this)">👍 Helpful <b>0</b></button>
+      <button class="react" onclick="react(this)">💡 Easy <b>0</b></button>
+      <button class="react" onclick="react(this)">🛠 Practical <b>0</b></button>
+      <button class="react warn" onclick="react(this)">❓ Clarify <b>0</b></button>
+      <span class="react-spacer"></span>
+      <button class="mini-act" aria-label="Save" onclick="this.classList.toggle('hit')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg></button>
+      <button class="mini-act" aria-label="Comment" onclick="toast('Comments open in the full build')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/></svg></button>
+      <button class="mini-act" aria-label="Share" onclick="toast('Link copied')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.2 10.8l7.6-3.6M8.2 13.2l7.6 3.6"/></svg></button>
+    </div>
+  </article>`).join("");
+}
+function feedMode(btn,mode){
+  document.querySelectorAll("#feedPills .pill").forEach(p=>p.classList.remove("on"));
+  btn.classList.add("on");
+  renderFeed(mode==="my-units");
+}
+function react(btn){
+  const b=btn.querySelector("b");
+  if(btn.classList.toggle("hit")) b.textContent=+b.textContent+1;
+  else b.textContent=Math.max(0,+b.textContent-1);
+}
+function toggleFollow(btn,name){
+  const on=btn.classList.toggle("done");
+  btn.textContent=on?"Following":"Follow";
+  if(on)toast(`Following <b>${name}</b>`);
+}
+
+/* ---------------- watch + quiz ---------------- */
+function playVideo(id){
+  const bar=document.getElementById("wb-"+id),hint=document.getElementById("ph-"+id);
+  if(bar.dataset.busy)return;
+  bar.dataset.busy=1;hint.style.display="none";
+  let p=0;
+  const t=setInterval(()=>{
+    p+=4;bar.style.width=p+"%";
+    if(p>=100){clearInterval(t);delete bar.dataset.busy;hint.style.display="";bar.style.width="0%";openQuiz(id);}
+  },70);
+}
+function openQuiz(id){
+  activeQuiz=videos.find(v=>v.id===id);
+  document.getElementById("quizQ").textContent=activeQuiz.quiz.q;
+  const opts=document.getElementById("quizOpts");
+  opts.innerHTML=activeQuiz.quiz.opts.map((o,i)=>`<button class="opt" onclick="answer(this,${i})">${o}</button>`).join("");
+  const res=document.getElementById("quizResult");
+  res.className="quiz-result";res.innerHTML="";
+  document.getElementById("quizOverlay").classList.add("on");
+}
+function answer(btn,i){
+  if(!activeQuiz||document.querySelector(".opt.right"))return;
+  const q=activeQuiz.quiz,res=document.getElementById("quizResult");
+  quizzes++;
+  document.querySelectorAll(".opt")[q.right].classList.add("right");
+  if(i===q.right){
+    correct++;xp+=25;
+    res.className="quiz-result good";
+    res.innerHTML=`Nice, that is <b>+25 XP</b>. ${activeQuiz.creator}'s Teaching Impact just went up because you understood it.`;
+  }else{
+    btn.classList.add("wrong");
+    res.className="quiz-result bad";
+    res.innerHTML=`Not quite. AI queued a related video for you: <b>${q.related}</b>.`;
+  }
+  syncStats();
+}
+function closeQuiz(){document.getElementById("quizOverlay").classList.remove("on");activeQuiz=null}
+
+/* ---------------- upload ---------------- */
+let fileChosen=false;
+function fakeFile(){
+  fileChosen=true;
+  const dz=document.getElementById("dropzone");
+  dz.classList.add("filled");
+  document.getElementById("dzText").textContent="recursion_explainer_v2.mp4 · 0:47";
+}
+function runReview(){
+  if(!fileChosen){toast("Choose a video file first");return}
+  const btn=document.getElementById("submitReview");
+  btn.disabled=true;btn.textContent="AI reviewing...";
+  const card=document.getElementById("reviewCard");
+  card.classList.add("on");
+  card.scrollIntoView({behavior:"smooth",block:"nearest"});
+  const lines=card.querySelectorAll(".check-line");
+  lines.forEach((l,i)=>setTimeout(()=>l.classList.add("show"),450*(i+1)));
+  setTimeout(()=>document.getElementById("reviewNote").classList.add("show"),450*lines.length+400);
+  setTimeout(()=>{
+    document.getElementById("publishBtn").classList.add("show");
+    btn.textContent="Submit for AI review";btn.disabled=false;
+  },450*lines.length+800);
+}
+function publishVideo(){
+  vidCount++;xp+=50;syncStats();
+  const unit=document.getElementById("upUnit").value.trim().toUpperCase()||"COMP1005";
+  toast(`Published to the <b>${unit}</b> feed. +50 XP`);
+  document.getElementById("reviewCard").classList.remove("on");
+  document.querySelectorAll(".check-line").forEach(l=>l.classList.remove("show"));
+  document.getElementById("reviewNote").classList.remove("show");
+  document.getElementById("publishBtn").classList.remove("show");
+  goTab("feed");
+}
+
+/* ---------------- leaderboard ---------------- */
+function renderLb(mode){
+  const sorted=[...leaders].sort((a,b)=>mode==="impact"?b.impact-a.impact:b.helped-a.helped);
+  const medal=["🥇","🥈","🥉"];
+  document.getElementById("lbList").innerHTML=sorted.map((p,i)=>`
+    <div class="lb-row ${i===0?"top1":""}">
+      <span class="lb-rank">${medal[i]||i+1}</span>
+      <span class="avatar">${initials(p.name)}</span>
+      <div class="who"><b>${p.name}${p.name==="Abby Tran"?" (you)":""}</b><span>${p.course.toUpperCase()}</span></div>
+      <span class="lb-badges">${p.badges}</span>
+      <div class="lb-score"><b>${mode==="impact"?p.impact.toFixed(1):p.helped}</b><span>${mode==="impact"?"impact":"helped"}</span></div>
+    </div>`).join("");
+}
+function lbMode(btn,mode){
+  btn.parentElement.querySelectorAll(".pill").forEach(p=>p.classList.remove("on"));
+  btn.classList.add("on");renderLb(mode);
+}
+
+/* ---------------- shared ---------------- */
+function goTab(name){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  document.getElementById("screen-"+name).classList.add("on");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===name));
+  document.querySelector(".topbar").style.display=name==="feed"?"":"none";
+  window.scrollTo({top:0});
+}
+function syncStats(){
+  document.getElementById("statXP").textContent=xp+" XP";
+  document.getElementById("statXP2").textContent=xp;
+  document.getElementById("statQuiz").textContent=quizzes;
+  document.getElementById("statAcc").textContent=Math.round(correct/quizzes*100)+"%";
+  document.getElementById("statVids").textContent=vidCount;
+  document.getElementById("xpFill").style.width=Math.min(100,(xp%700)/7)+"%";
+}
+let toastTimer;
+function toast(html){
+  const t=document.getElementById("toast");
+  t.innerHTML=html;t.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("on"),2600);
+}
+renderFeed(false);renderLb("impact");syncStats();
+</script>
+</body>
+</html>
